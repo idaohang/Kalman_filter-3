@@ -1,15 +1,14 @@
 %% 
-% Part of the PhD Project, 2015-2019 
-% Dionelis Nikolaos 
-% Imperial College London, CID: 00690438 
+% PhD Project, 2015-2019 
+% Dionelis Nikolaos, CID: 00690438 
 
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
 
 % use: z = v_addnoise(s,fs,snr,'',s2,fs2); 
 % or:  z=v_addnoise(s,fs,snr,'AD',s2,fs2);
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
 
 % Clear all the previous data
 clear all; clc; 
@@ -20,8 +19,8 @@ addpath ./voicebox
 
 % Set up voicebox
 %y_voicebox = voicebox('speech_voicebox');
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
 
 addpath ./clean
 
@@ -39,8 +38,8 @@ addpath ./car/0dB
 addpath ./car/5dB
 addpath ./car/10dB
 addpath ./car/15dB
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
 
 % % Add the datapaths of the "stprtool" toolbox
 % addpath ./External_stprtool
@@ -51,13 +50,13 @@ addpath ./car/15dB
 % addpath ./Noise_Database_44kHz
 % addpath ./Noise_Database_8kHz
 % addpath ./Noise_Database_from_RTDSP_course
-% % ------------------------------------------------------------------------
-% % ------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
 % 
 % % Add the datapaths of the TIMIT database
 % addpath ./TIMIT\TRAIN\DR1\FCJF0
-% % ------------------------------------------------------------------------
-% % ------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
 % 
 % % Add the datapath of the Nato Noise database
 % addpath ./NatoNoise0
@@ -68,8 +67,8 @@ addpath ./car/15dB
 % % Add the datapath for monaural noise files
 % % this is from the noise P501 database
 % addpath ./Monaural
-% % ------------------------------------------------------------------------
-% % ------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
 % 
 % % Add the datapath for the male speech files
 % addpath ./Male
@@ -90,8 +89,8 @@ addpath ./car/15dB
 % addpath ./speech\sll
 % addpath ./speech\zng
 % addpath ./speech\zpg
-% % ------------------------------------------------------------------------
-% % ------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
 % 
 % % files from the noise database ETSI_EG202396_1
 % % Add the datapath for binaural signals (noise files)
@@ -110,8 +109,8 @@ addpath ./car/15dB
 % addpath ./Human_Noises
 % addpath ./Home_Ambience
 % addpath ./Explosions_and_Gunfire
-% % ------------------------------------------------------------------------
-% % ------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
 % 
 % % Add the datapaths of the noisy speech databases
 % addpath ./Noisy_Speech_Database_white_noise_16kHz
@@ -165,8 +164,8 @@ addpath ./car/15dB
 % addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\train\5dB
 % addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\train\10dB
 % addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\train\15dB
-% % ------------------------------------------------------------------------
-% % ------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
+% %-------------------------------------------------------------------------------------------------------------------------------
 % 
 % % Add the datapaths of the clean speech databases
 % addpath ./Database_for_Consonants
@@ -181,17 +180,28 @@ addpath ./Functions_for_Noise_Estimation
 
 % Add the datapaths of the functions for the Enhancement Systems
 addpath ./Functions_for_Enhancement_System
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
 
 addpath ./FCJF0
 addpath ./NatoNoise0
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
 
 %%
+% KF for pv
+
+% Things to do: 
+% 1)  Better training with more SNR values. Now, it uses only 5 dB SNR.
+% 2) EM algorithm VS LS/MMSE for training the KF. We use only LS/MMSE here. We need to use the EM algorithm.
+% 3) Use future frames. Use KF for smoothing/hindsight and not for filtering. In general, filtering VS prediction VS smoothing.
+% 4) Now, pv is the frame voiced probability. We need to try pv(k,l), we need to try fr.bin and frame voiced probability.
+
+%-------------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------------------------------
+
 % Read the PHN TIMIT file
 [s,fs,wrd,phn] = readsph('SA1.WAV','wt');
 
@@ -241,9 +251,8 @@ clear w2;
 % this was for one sentence
 % we need to repeat with many sentences
 
+% we initialize the counter
 counter = 0;
-
-total_error_pv = [];
 
 % Outter for loop
 for filename2 = {'SA1.WAV', 'SA2.WAV', 'SI648.WAV', ...
@@ -294,6 +303,115 @@ for filename2 = {'SA1.WAV', 'SA2.WAV', 'SI648.WAV', ...
     end
 end
 
+% this was for 5 dB SNR 
+% we now use 0 dB SNR 
+
+% Outter for loop
+for filename2 = {'SA1.WAV', 'SA2.WAV', 'SI648.WAV', ...
+        'SI1027.WAV', 'SI1657.WAV', 'SX37.WAV', ...
+        'SX127.WAV', 'SX217.WAV', 'SX307.WAV', ...
+        'SX397.WAV'}
+    % Read the PHN TIMIT file
+    [s,fs,wrd,phn] = readsph(filename2{1},'wt');
+
+    total_error_pv = [];
+    
+    % Use counter 
+    counter = counter + 1;
+    
+    % we use PEFAC to find voiced speech
+    [fx,tx,pv,fv] = fxpefac(s,fs);
+
+    % we store the true values
+    true_pv = pv;
+
+    % Inner for loop
+    for filename = {'babble.wav', 'buccaneer1.wav', 'buccaneer2.wav', ...
+            'destroyerengine.wav', 'destroyerops.wav', 'f16.wav', 'factory1.wav',  ...
+            'factory2.wav', 'hfchannel.wav', 'leopard.wav', 'm109.wav', ...
+            'machinegun.wav', 'pink.wav', 'volvo.wav', 'white.wav'}
+        % Read the noise file
+        [s2, fs2] = audioread(filename{1});
+
+        % Define the SNR
+        snr = 0;
+
+        % Add noise from column vector n() at sample frequency fn with random start
+        % Sample and wrapping around as required with a vorbis cross-fade
+        z = v_addnoise(s,fs,snr,'',s2,fs2); 
+
+        s = z;
+
+        % we use PEFAC to find voiced speech
+        [fx,tx,pv,fv] = fxpefac(s,fs);
+
+        % we find error
+        error_pv = pv - true_pv;
+        
+        total_error_pv = [total_error_pv; error_pv'];
+        
+        total_total_error_pv{counter} = total_error_pv;
+        
+    end
+end
+
+% this was for 0 dB SNR 
+% we now use 10 dB SNR 
+
+% Outter for loop
+for filename2 = {'SA1.WAV', 'SA2.WAV', 'SI648.WAV', ...
+        'SI1027.WAV', 'SI1657.WAV', 'SX37.WAV', ...
+        'SX127.WAV', 'SX217.WAV', 'SX307.WAV', ...
+        'SX397.WAV'}
+    % Read the PHN TIMIT file
+    [s,fs,wrd,phn] = readsph(filename2{1},'wt');
+
+    total_error_pv = [];
+    
+    % Use counter 
+    counter = counter + 1;
+    
+    % we use PEFAC to find voiced speech
+    [fx,tx,pv,fv] = fxpefac(s,fs);
+
+    % we store the true values
+    true_pv = pv;
+
+    % Inner for loop
+    for filename = {'babble.wav', 'buccaneer1.wav', 'buccaneer2.wav', ...
+            'destroyerengine.wav', 'destroyerops.wav', 'f16.wav', 'factory1.wav',  ...
+            'factory2.wav', 'hfchannel.wav', 'leopard.wav', 'm109.wav', ...
+            'machinegun.wav', 'pink.wav', 'volvo.wav', 'white.wav'}
+        % Read the noise file
+        [s2, fs2] = audioread(filename{1});
+
+        % Define the SNR
+        snr = 10;
+
+        % Add noise from column vector n() at sample frequency fn with random start
+        % Sample and wrapping around as required with a vorbis cross-fade
+        z = v_addnoise(s,fs,snr,'',s2,fs2); 
+
+        s = z;
+
+        % we use PEFAC to find voiced speech
+        [fx,tx,pv,fv] = fxpefac(s,fs);
+
+        % we find error
+        error_pv = pv - true_pv;
+        
+        total_error_pv = [total_error_pv; error_pv'];
+        
+        total_total_error_pv{counter} = total_error_pv;
+        
+    end
+end
+
+% this was for 0 dB SNR 
+
+% we now need one array with all the values
+
+% we initialize the new array
 errors_in_pv = [];
 
 for i = 1 : counter
@@ -316,6 +434,10 @@ error_in_pv = error_in_pv';
 % we use v2
 v2
 
+% v2 is 0.0942
+% we use this value so as to not wait for training
+%v2 = 0.0942;
+
 % clear the other temp variables
 clear m;
 clear v;
@@ -323,6 +445,7 @@ clear w;
 clear m2;
 clear w2;
 
+% ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
 
 % we now fit the transition model 
@@ -351,6 +474,10 @@ end
 % we use v2_x
 v2_x
 
+% v2_x is 0.0198
+% we use this value so as to not wait for training
+%v2_x = 0.0198;
+
 % clear the other temp variables
 clear m;
 clear v;
@@ -358,6 +485,7 @@ clear w;
 clear m2;
 clear w2;
 
+% ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
 
 % we now use Kalman filter (KF)
@@ -627,6 +755,113 @@ for filename2 = {'SA1.WAV', 'SA2.WAV', 'SI648.WAV', ...
         
     end
 end
+
+% this was for SNR 5 dB
+% we now use SNR 0 dB
+
+% Outter for loop
+for filename2 = {'SA1.WAV', 'SA2.WAV', 'SI648.WAV', ...
+        'SI1027.WAV', 'SI1657.WAV', 'SX37.WAV', ...
+        'SX127.WAV', 'SX217.WAV', 'SX307.WAV', ...
+        'SX397.WAV'}
+    % Read the PHN TIMIT file
+    [s,fs,wrd,phn] = readsph(filename2{1},'wt');
+
+    states2 = [];
+    observations2 = [];
+    
+    % Use counter 
+    counter = counter + 1;
+    
+    % we use PEFAC to find voiced speech
+    [fx,tx,pv,fv] = fxpefac(s,fs);
+
+    % we store the true values
+    true_pv = pv;
+
+    % Inner for loop
+    for filename = {'babble.wav', 'buccaneer1.wav', 'buccaneer2.wav', ...
+            'destroyerengine.wav', 'destroyerops.wav', 'f16.wav', 'factory1.wav',  ...
+            'factory2.wav', 'hfchannel.wav', 'leopard.wav', 'm109.wav', ...
+            'machinegun.wav', 'pink.wav', 'volvo.wav', 'white.wav'}
+        % Read the noise file
+        [s2, fs2] = audioread(filename{1});
+
+        % Define the SNR
+        snr = 0;
+
+        % Add noise from column vector n() at sample frequency fn with random start
+        % Sample and wrapping around as required with a vorbis cross-fade
+        z = v_addnoise(s,fs,snr,'',s2,fs2); 
+
+        s = z;
+
+        % we use PEFAC to find voiced speech
+        [fx,tx,pv,fv] = fxpefac(s,fs);
+
+        states2 = [states2; true_pv'];
+        observations2 = [observations2; pv'];
+        
+        states1{counter} = states2;
+        observations1{counter} = observations2;
+        
+    end
+end
+
+% this was for SNR 0 dB
+% we now use SNR 10 dB
+
+% Outter for loop
+for filename2 = {'SA1.WAV', 'SA2.WAV', 'SI648.WAV', ...
+        'SI1027.WAV', 'SI1657.WAV', 'SX37.WAV', ...
+        'SX127.WAV', 'SX217.WAV', 'SX307.WAV', ...
+        'SX397.WAV'}
+    % Read the PHN TIMIT file
+    [s,fs,wrd,phn] = readsph(filename2{1},'wt');
+
+    states2 = [];
+    observations2 = [];
+    
+    % Use counter 
+    counter = counter + 1;
+    
+    % we use PEFAC to find voiced speech
+    [fx,tx,pv,fv] = fxpefac(s,fs);
+
+    % we store the true values
+    true_pv = pv;
+
+    % Inner for loop
+    for filename = {'babble.wav', 'buccaneer1.wav', 'buccaneer2.wav', ...
+            'destroyerengine.wav', 'destroyerops.wav', 'f16.wav', 'factory1.wav',  ...
+            'factory2.wav', 'hfchannel.wav', 'leopard.wav', 'm109.wav', ...
+            'machinegun.wav', 'pink.wav', 'volvo.wav', 'white.wav'}
+        % Read the noise file
+        [s2, fs2] = audioread(filename{1});
+
+        % Define the SNR
+        snr = 10;
+
+        % Add noise from column vector n() at sample frequency fn with random start
+        % Sample and wrapping around as required with a vorbis cross-fade
+        z = v_addnoise(s,fs,snr,'',s2,fs2); 
+
+        s = z;
+
+        % we use PEFAC to find voiced speech
+        [fx,tx,pv,fv] = fxpefac(s,fs);
+
+        states2 = [states2; true_pv'];
+        observations2 = [observations2; pv'];
+        
+        states1{counter} = states2;
+        observations1{counter} = observations2;
+        
+    end
+end
+
+% SNR 5, 0 and 10 were used
+% the training with SNR 5,0 and 10 has finished
 
 % we need to define total_total_observations 
 % we need to define the states: total_states
