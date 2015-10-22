@@ -5,11 +5,6 @@
 %-------------------------------------------------------------------------------------------------------------------------------
 %-------------------------------------------------------------------------------------------------------------------------------
 
-% use: z = v_addnoise(s,fs,snr,'',s2,fs2); 
-% or:  z=v_addnoise(s,fs,snr,'AD',s2,fs2);
-%-------------------------------------------------------------------------------------------------------------------------------
-%-------------------------------------------------------------------------------------------------------------------------------
-
 % Clear all the previous data
 clear all; clc; 
 close all;
@@ -69,111 +64,6 @@ addpath ./car/15dB
 % addpath ./Monaural
 % %-------------------------------------------------------------------------------------------------------------------------------
 % %-------------------------------------------------------------------------------------------------------------------------------
-% 
-% % Add the datapath for the male speech files
-% addpath ./Male
-% 
-% % Add the datapath for the female speech files
-% addpath ./Female
-% 
-% % Add the datapath for the speech files
-% addpath ./speech\jal
-% addpath ./speech\jcs
-% addpath ./speech\jgl
-% addpath ./speech\leb
-% addpath ./speech\mam
-% addpath ./speech\mwm
-% addpath ./speech\nad
-% addpath ./speech\sas
-% addpath ./speech\scs
-% addpath ./speech\sll
-% addpath ./speech\zng
-% addpath ./speech\zpg
-% %-------------------------------------------------------------------------------------------------------------------------------
-% %-------------------------------------------------------------------------------------------------------------------------------
-% 
-% % files from the noise database ETSI_EG202396_1
-% % Add the datapath for binaural signals (noise files)
-% addpath ./Binaural_Signals
-% 
-% % files from the noise database ETSI_EG202396_1
-% % Add the datapath for calibration signals (noise files)
-% addpath ./Calibration_Signals
-% 
-% % files from the noise database ETSI_EG202396_1
-% % Add the datapath for stereophonic signals (noise files)
-% addpath ./Stereophonic_Signals
-% 
-% % Add noise databases
-% addpath ./Industrial_External
-% addpath ./Human_Noises
-% addpath ./Home_Ambience
-% addpath ./Explosions_and_Gunfire
-% %-------------------------------------------------------------------------------------------------------------------------------
-% %-------------------------------------------------------------------------------------------------------------------------------
-% 
-% % Add the datapaths of the noisy speech databases
-% addpath ./Noisy_Speech_Database_white_noise_16kHz
-% addpath ./IEEE_corpus_sps_16kHz
-% 
-% %addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz
-% % We add NOIZEUS noisy speech signal database: airport noise
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\airport\0dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\airport\5dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\airport\10dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\airport\15dB
-% 
-% % We add NOIZEUS noisy speech signal database: babble noise
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\babble\0dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\babble\5dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\babble\10dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\babble\15dB
-% 
-% % We add NOIZEUS noisy speech signal database: car noise
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\car\0dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\car\5dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\car\10dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\car\15dB
-% 
-% % We add NOIZEUS noisy speech signal database: exhibition noise
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\exhibition\0dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\exhibition\5dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\exhibition\10dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\exhibition\15dB
-% 
-% % We add NOIZEUS noisy speech signal database: restaurant noise
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\restaurant\0dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\restaurant\5dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\restaurant\10dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\restaurant\15dB
-% 
-% % We add NOIZEUS noisy speech signal database: station noise
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\station\0dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\station\5dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\station\10dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\station\15dB
-% 
-% % We add NOIZEUS noisy speech signal database: street noise
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\street\0dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\street\5dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\street\10dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\street\15dB
-% 
-% % We add NOIZEUS noisy speech signal database: train noise
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\train\0dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\train\5dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\train\10dB
-% addpath ./NOIZEUS_Noisy_Speech_Signal_Database_16kHz\train\15dB
-% %-------------------------------------------------------------------------------------------------------------------------------
-% %-------------------------------------------------------------------------------------------------------------------------------
-% 
-% % Add the datapaths of the clean speech databases
-% addpath ./Database_for_Consonants
-% addpath ./Speech_Database_IEEE
-% addpath ./Database_with_4_clean_sentences
-% addpath ./IEEE_corpus_clean_16kHz
-% addpath ./NOIZEUS_Clean_Speech_Database
-% addpath ./NOIZEUS_Clean_Speech_Database_16kHz
 
 % Add the datapaths of the functions for Noise Estimation
 addpath ./Functions_for_Noise_Estimation
@@ -194,10 +84,9 @@ addpath ./NatoNoise0
 % KF for pv
 
 % Things to do: 
-% 1)  Better training with more SNR values. Now, it uses only 5 dB SNR.
-% 2) EM algorithm VS LS/MMSE for training the KF. We use only LS/MMSE here. We need to use the EM algorithm.
-% 3) Use future frames. Use KF for smoothing/hindsight and not for filtering. In general, filtering VS prediction VS smoothing.
-% 4) Now, pv is the frame voiced probability. We need to try pv(k,l), we need to try fr.bin and frame voiced probability.
+% 1) EM algorithm VS LS/MMSE for training the KF. We use only LS/MMSE here. We need to use the EM algorithm.
+% 2) Use future frames. Use KF for smoothing/hindsight and not for filtering. In general, filtering VS prediction VS smoothing.
+% 3) Now, pv is the frame voiced probability. We need to try pv(k,l), we need to try fr.bin and frame voiced probability.
 
 %-------------------------------------------------------------------------------------------------------------------------------
 %-------------------------------------------------------------------------------------------------------------------------------
